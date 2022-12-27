@@ -1,7 +1,6 @@
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.function.Predicate;
+
 
 /**
  * A skeleton class to represent parse trees. The arity is not fixed: a node can
@@ -123,39 +122,6 @@ public class ParseTree {
         return bigstring.toString();
     }
 
-//    private Set<LexicalUnit> discardUnit =
-//    public void generateAST(){
-//        if(children.isEmpty()) return;
-//
-//
-//        children.removeIf(child -> getLabel().getValue().toString().equals("Prod"));
-//        children.forEach(child -> child.generateAST());
-//    }
-
-
-
-//    public void deleteNodes(Predicate<Symbol> predicate) {
-//        // If the label of the current node satisfies the predicate, remove it from the children list of its parent
-//        if (predicate.test(label)) {
-//            children.clear();
-//            return;
-//        }
-//        // Otherwise, traverse the children of the current node
-//        for (ParseTree child : children) {
-//            child.deleteNodes(predicate);
-//        }
-//    }
-//    public void deleteNodes() {
-//        // If the label of the current node has the specified type and value, remove it from the children list of its parent
-//        if (label.getValue().toString().equals("ProdF")) {
-//            children.clear();
-//            return;
-//        }
-//        // Otherwise, traverse the children of the current node
-//        for (ParseTree child : children) {
-//            child.deleteNodes();
-//        }
-//    }
 
 
     public AbstractSyntaxTree createAST(ParseTree parseTree){

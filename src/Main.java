@@ -3,7 +3,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import java.util.Optional;
 
 /**
  *
@@ -68,31 +67,32 @@ public class Main{
         //launch the parsing
         ParseTree parseTree = parser.Program();
 //        parser.printUsedRules();
-//        parseTree.deleteNodes(Symbol -> Symbol.getType() == LexicalUnit.LPAREN);
-//        parseTree.deleteNodes();
-//        AbstractSyntaxTree ast = ASTGeneration.getAST(parseTree);
-        AbstractSyntaxTree ast = parseTree.createAST(parseTree);
+        /*
+            if latex output file is given as argument then write in it
+            if not, then don't
+            !!!!!!! LATEX FROM ORIGINAL PARSE TREE
+         */
+    //    if(latex != null){
+    //        output = new FileWriter(latex);
+    //        output.write(parseTree.toLaTeX());
+    //        output.close();
+    //    }
 
+//        String str = parseTree.toSdoutString();
+//        System.out.println(str);
+
+        /**
+         * AST PRE TREE GENERATION
+         * LATEX FROM AST PRE TREE
+         */
+
+
+        AbstractSyntaxTree ast = ASTGeneration.generateTree(parseTree); // create another tree with the same structure but with different nodes
         if(latex!=null){
             output = new FileWriter(latex);
             output.write(ast.toLaTeX());
             output.close();
         }
-
-        /*
-            if latex output file is given as argument then write in it
-            if not, then don't
-         */
-//        if(latex != null){
-//            output = new FileWriter(latex);
-//            output.write(parseTree.toLaTeX());
-//            output.close();
-//        }
-
-//        String str = parseTree.toSdoutString();
-//        System.out.println(str);
-
-
 
     }
 
