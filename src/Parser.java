@@ -1,307 +1,558 @@
-import java.util.List;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 
-public class Parser{
-    private LexicalAnalyzer scanner;
-    private Token current;
+public class Parser {
 
-    public Parser(FileReader source) throws IOException{
-        this.scanner = new LexicalAnalyzer(source);
-        this.current = scanner.nextToken();
-    }
+    private Symbol lookAhead; //look ahead token creating the predictive parsing
+    //here we store the look ahead, we need it in case it goes to far, if to far => can't go backward
+    private Symbol actualToken;
+    private LexicalUnit lookAheadType; //lexical unit of the look ahead for the switch/cases
+    final LexicalAnalyzer lexer; //lexical analyzer implemented in first part of project
+    private ArrayList<Integer> usedRules = new ArrayList<>(); //list storing the rules leading to the final derivation tree
 
-    private void consume() throws IOException{
-        current = scanner.nextToken();
-    }
+    public Parser(FileReader source){ lexer = new LexicalAnalyzer(source);}
 
-    private ParseTree match(Terminal token) throws IOException, ParseException{
-        if(!current.getType().equals(token)){
-            // There is a parsing error
-            throw new ParseException(current, Arrays.asList(token));
+    /**
+     * print the sequence of rules used to parse and make the derivation tree
+     * of the input files
+     */
+    public void printUsedRules(){
+        for(Integer integer: usedRules){
+            System.out.print(integer + " ");
         }
-        else {
-            Token cur = current;
-            consume();
-            return new ParseTree(new TreeLabel(cur));
-        }
-    }
-    public ParseTree parse() throws IOException, ParseException{
-        // Program is the initial symbol of the grammar
-        return program();
+        System.out.print("\n");
     }
 
-    private ParseTree program() throws IOException, ParseException{
-        // Program     --> BEGIN PROGNAME Code END
-        return new ParseTree(NonTerminal.Program, Arrays.asList(
-				match(Terminal.BEGIN),
-				match(Terminal.PROGNAME),
-				code(), 
-				match(Terminal.END),
-				match(Terminal.EOS)));
-    }
-
-    private ParseTree code() throws IOException, ParseException{
-        switch(current.getType()) {
-            // <Code>         --> EPSILON 
-        case END:
-        case ELSE:
-                return new ParseTree(NonTerminal.Code, Arrays.asList(new ParseTree(Terminal.EPSILON)));
-            // <Code>  -->  Instruction COMMA Code
-            case VARNAME:
-            case IF:
-            case WHILE:
-            case PRINT:
-            case READ:
-                return new ParseTree(NonTerminal.Code, Arrays.asList(
-				instruction(),
-				match(Terminal.COMMA),
-				code()));
+    /**
+     * function corresponding to the non-terminal Program
+     * [1] Program           → BEGIN [ProgName] Code END
+     * @return a Parent node which is the non terminal Program and the corresponding children
+     */
+    public ParseTree Program(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case BEGIN:
+                usedRules.add(1);
+                chldn.add(match(LexicalUnit.BEGIN));
+                getNextToken();
+                chldn.add(match(LexicalUnit.PROGNAME));
+                chldn.add(Code());
+                getNextToken();
+                chldn.add(match(LexicalUnit.END));
+                break;
             default:
-                throw new ParseException(current);
+                syntaxError(lookAhead);
+                break;
+
         }
+        return new ParseTree(new Symbol("Program"), chldn);
     }
 
-
-    private ParseTree instruction() throws IOException, ParseException{
-        switch(current.getType()) {
-            // <Instruction>  --> <Assign> 
-        case VARNAME:
-            return new ParseTree(NonTerminal.Instruction, Arrays.asList(assign()));
-            // <Instruction>  --> <If> 
-        case IF:
-            return new ParseTree(NonTerminal.Instruction, Arrays.asList(ifI()));
-            // <Instruction>  --> <While> 
-        case WHILE:
-            return new ParseTree(NonTerminal.Instruction, Arrays.asList(whileI()));
-            // <Instruction>  --> <Print> 
-        case PRINT:
-            return new ParseTree(NonTerminal.Instruction, Arrays.asList(print()));
-            // <Instruction>  --> <Read> 
-        case READ:
-            return new ParseTree(NonTerminal.Instruction, Arrays.asList(read()));
-        default:
-            throw new ParseException(current);
+    /**
+     * function corresponding to the non terminal Code
+     * [2] Code                → Instruction CodeF
+     * [3]                     → ε
+     * @return a Parent node which is the non terminal Code and the corresponding children
+     */
+    private ParseTree Code() {
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case END:
+            case ELSE:
+                usedRules.add(3);
+                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                return new ParseTree(new Symbol("code"), chldn);
+            default:
         }
+        usedRules.add(2);
+        chldn.add(Instruction()); chldn.add(CodeF());
+
+        return new ParseTree(new Symbol("Code"), chldn);
     }
 
-    private ParseTree assign() throws IOException, ParseException{
-        // <Assign>       --> VARNAME ASSIGN <ExprArith> 
-        return new ParseTree(
-                             NonTerminal.Assign,
-                             Arrays.asList(
-                                           match(Terminal.VARNAME),
-                                           match(Terminal.ASSIGN),
-                                           exprArith()
-                                           ));
-    }
-
-    private ParseTree exprArith() throws IOException, ParseException{
-        // <ExprArith>    --> <ProdExpr> <ExprTail>
-        return new ParseTree(NonTerminal.ExprArith,
-                             Arrays.asList(
-                                           prodExpr(),
-                                           exprTail()
-                                           ));
-    }
-
-    private ParseTree prodExpr() throws IOException, ParseException{
-        // <ProdExpr>     --> <ExprAtom> <ProdTail> 
-        return new ParseTree(NonTerminal.ProdExpr,
-                             Arrays.asList(
-                                           exprAtom(),
-                                           prodTail()
-                                           ));
-    }
-
-    private ParseTree exprAtom() throws IOException, ParseException{
-        List<Terminal> altExprAtom = Arrays.asList(Terminal.MINUS, Terminal.LPAREN, Terminal.VARNAME, Terminal.NUMBER);
-        switch(current.getType()) {
-            // <ExprAtom>     --> MINUS <ExprAtom>
-        case MINUS:
-            return new ParseTree(NonTerminal.ExprAtom,
-                                 Arrays.asList(
-                                               match(Terminal.MINUS),
-                                               exprAtom()
-                                               ));
-            // <ExprAtom>     --> VARNAME
-        case VARNAME:
-            return new ParseTree(NonTerminal.ExprAtom,
-                                 Arrays.asList(match(Terminal.VARNAME)));
-            // <ExprAtom>     --> NUMBER
-        case NUMBER:
-            return new ParseTree(NonTerminal.ExprAtom,
-                                 Arrays.asList(match(Terminal.NUMBER)));
-            // <ExprAtom>     --> LPAREN <ExprArith> RPAREN
-        case LPAREN:
-            return new ParseTree(NonTerminal.ExprAtom,
-                                 Arrays.asList(
-                                               match(Terminal.LPAREN),
-                                               exprArith(),
-                                               match(Terminal.RPAREN)
-                                               ));
-        default:
-            throw new ParseException(current, altExprAtom);
+    /**
+     * function corresponding to the non terminal CodeF
+     * [4] CodeF               → , Code
+     * [5]                     → ε
+     * @return a parent node which is the non terminal CodeF and the corresponding children
+     */
+    private ParseTree CodeF() {
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case END:
+            case ELSE:
+                usedRules.add(5);
+                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                return new ParseTree(new Symbol("CodeF"), chldn);
+            case COMMA:
+                usedRules.add(4);
+                chldn.add(match(LexicalUnit.COMMA));
+                chldn.add(Code());
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
         }
+        return new ParseTree(new Symbol("CodeF"), chldn);
     }
 
-    private ParseTree exprTail() throws IOException, ParseException{
-        switch(current.getType()) {
-            // <ExprTail>     --> <AddOp> <ProdExpr> <ExprTail>
+
+    /**
+     * function corresponding to the non terminal Instruction
+     * [6] Instruction         → Assign
+     * [7]                     → If
+     * [8]                     → While
+     * [9]                     → Print
+     * [10]                    → Read
+     * @return a parent node which is the non terminal Instruction and the corresponding children
+     */
+    private ParseTree Instruction() {
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch(lookAheadType){
+            case VARNAME:
+                usedRules.add(6);
+                chldn.add(Assign());
+                break;
+            case IF:
+                usedRules.add(7);
+                chldn.add(If());
+                break;
+            case WHILE:
+                usedRules.add(8);
+                chldn.add(While());
+                break;
+            case PRINT:
+                usedRules.add(9);
+                chldn.add(Print());
+                break;
+            case READ:
+                usedRules.add(10);
+                chldn.add(Read());
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
+        }
+        return new ParseTree(new Symbol("Instruction"), chldn);
+    }
+
+    /**
+     * function corresponding to the non terminal Assign
+     * [11] Assign           → [VarName] := ExprArith
+     * @return a parent node which is the non terminal Assign and the corresponding children
+     */
+    private ParseTree Assign(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case VARNAME:
+                usedRules.add(11);
+                chldn.add(match(LexicalUnit.VARNAME));
+                getNextToken();
+                chldn.add(match(LexicalUnit.ASSIGN));
+                getNextToken();
+                chldn.add(ExprArith());
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
+        }
+        return new ParseTree(new Symbol("Assign"), chldn);
+    }
+
+    /**
+     * function corresponding to the non terminal If
+     * [12] If               → IF (Cond) THEN Code IfSeq
+     * @return a parent node which is the non terminal IF and the corresponding children
+     */
+    private ParseTree If(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case IF:
+                usedRules.add(12);
+                chldn.add(match(LexicalUnit.IF));
+                getNextToken();
+                chldn.add(match(LexicalUnit.LPAREN));
+                chldn.add(Cond());
+                getNextToken();
+                chldn.add(match(LexicalUnit.RPAREN));
+                getNextToken();
+                chldn.add(match(LexicalUnit.THEN));
+                chldn.add(Code());
+                chldn.add(IfSeq());
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
+        }
+        return new ParseTree(new Symbol("If"), chldn);
+    }
+
+    /**
+     * function corresponding to the non terminal IfSeq
+     * [13] IfSeq              → END
+     * [14]                    → ELSE Code END
+     * @return a parent node which is the non terminal IfSeq and the corresponding children
+     */
+    private ParseTree IfSeq(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case END:
+                usedRules.add(13);
+                chldn.add(match(LexicalUnit.END));
+                break;
+            case ELSE:
+                usedRules.add(14);
+                chldn.add(match(LexicalUnit.ELSE));
+                chldn.add(Code());
+                getNextToken();
+                chldn.add(match(LexicalUnit.END));
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
+        }
+
+        return new ParseTree(new Symbol("IfSeq"), chldn);
+
+    }
+
+    /**
+     * function corresponding to the non terminal While
+     * [15] While            → WHILE (Cond) DO Code END
+     * @return a parent node which is the non terminal While and the corresponding children
+     */
+    private ParseTree While(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case WHILE:
+                usedRules.add(15);
+                chldn.add(match(LexicalUnit.WHILE));
+                getNextToken();
+                chldn.add(match(LexicalUnit.LPAREN));
+                getNextToken();
+                chldn.add(Cond());
+                getNextToken();
+                chldn.add(match(LexicalUnit.RPAREN));
+                getNextToken();
+                chldn.add(match(LexicalUnit.DO));
+                chldn.add(Code());
+                getNextToken();
+                chldn.add(match(LexicalUnit.END));
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
+        }
+        return new ParseTree(new Symbol("While"), chldn);
+    }
+
+    /**
+     * function corresponding to the non terminal Cond
+     * [16] Cond             → ExprArith Comp
+     * @return a parent node which is the non terminal Cond and the corresponding children
+     */
+    private ParseTree Cond(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        usedRules.add(16);
+        chldn.add(ExprArith());
+        chldn.add(Comp());
+        return new ParseTree(new Symbol("Cond"), chldn);
+
+    }
+
+    /**
+     * function corresponding to the non terminal Comp
+     * [17] Comp             → = ExprArith
+     * [18]                    → > ExprArith
+     * [19]                    → < ExprArith
+     * @return a parent node which is the non terminal Comp and the corresponding children
+     */
+    private ParseTree Comp(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case EQUAL:
+                usedRules.add(17);
+                chldn.add(match(LexicalUnit.EQUAL));
+                getNextToken();
+                chldn.add(ExprArith());
+                break;
+            case GREATER:
+                usedRules.add(18);
+                chldn.add(match(LexicalUnit.GREATER));
+                getNextToken();
+                chldn.add(ExprArith());
+                break;
+            case SMALLER:
+                usedRules.add(19);
+                chldn.add(match(LexicalUnit.SMALLER));
+                getNextToken();
+                chldn.add(ExprArith());
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
+        }
+        return new ParseTree(new Symbol("Comp"), chldn);
+
+    }
+
+    /**
+     * function corresponding to the non terminal ExprArith
+     * [20] ExprArith        → Prod ExprArithF
+     * @return a parent node which is the non terminal ExprArith and the corresponding children
+     */
+    private ParseTree ExprArith(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        usedRules.add(20);
+        chldn.add(Prod());
+        chldn.add(ExprArithF());
+        return new ParseTree(new Symbol("ExprArith"), chldn);
+    }
+
+    /**
+     * function corresponding to the non terminal ExprArithF
+     * [21] ExprArithF       → + Prod ExprArithF
+     * [22]                    → - Prod ExprArithF
+     * [23]                    → ε
+     * @return a parent node which is the non terminal ExprArithF and the corresponding children
+     */
+    private ParseTree ExprArithF(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case END:
+            case COMMA:
+            case ELSE:
+            case EQUAL:
+            case GREATER:
+            case SMALLER:
+            case RPAREN:
+                usedRules.add(23);
+                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                return new ParseTree(new Symbol("ExprArithF"), chldn);
+            case PLUS:
+                usedRules.add(21);
+                chldn.add(match(LexicalUnit.PLUS));
+                getNextToken();
+                chldn.add(Prod());
+                chldn.add(ExprArithF());
+                break;
+            case MINUS:
+                usedRules.add(22);
+                chldn.add(match(LexicalUnit.MINUS));
+                getNextToken();
+                chldn.add(Prod());
+                chldn.add(ExprArithF());
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
+        }
+        return new ParseTree(new Symbol("ExprArithF"), chldn);
+    }
+
+    /**
+     * function corresponding to the non terminal Prod
+     * [24] Prod             → Atom ProdF
+     * @return a parent node which is the non terminal Prod and the corresponding children
+     */
+    private ParseTree Prod(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        usedRules.add(24);
+        chldn.add(Atom());
+        chldn.add(ProdF());
+        return new ParseTree(new Symbol("Prod"), chldn);
+    }
+
+    /**
+     * function corresponding to the non terminal ProdF
+     * [25] ProdF              → * Atom ProdF
+     * [26]                    → / Atom ProdF
+     * [27]                    → ε
+     * @return a parent node which is the non terminal ProdF and the corresponding children
+     */
+    private ParseTree ProdF(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case END:
+            case ELSE:
+            case COMMA:
+            case EQUAL:
+            case GREATER:
+            case SMALLER:
             case PLUS:
             case MINUS:
-                return new ParseTree(NonTerminal.ExprTail,
-                                     Arrays.asList(
-                                                   addOp(),
-                                                   prodExpr(),
-                                                   exprTail()
-                                                   ));
-                // <ExprTail> --> EPSILON
+            case RPAREN:
+                usedRules.add(27);
+                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                return new ParseTree(new Symbol("ProdF"), chldn);
+            case TIMES:
+                usedRules.add(25);
+                chldn.add(match(LexicalUnit.TIMES));
+                chldn.add(Atom());
+                chldn.add(ProdF());
+                break;
+            case DIVIDE:
+                usedRules.add(26);
+                chldn.add(match(LexicalUnit.DIVIDE));
+                chldn.add(Atom());
+                chldn.add(ProdF());
+                break;
             default:
-                return new ParseTree(NonTerminal.ExprTail, Arrays.asList(new ParseTree(Terminal.EPSILON)));
+                syntaxError(lookAhead);
+                break;
         }
+        return new ParseTree(new Symbol("ProdF"), chldn);
     }
 
-    private ParseTree prodTail() throws IOException, ParseException{
-        switch(current.getType()) {
-            // <ProdTail>     --> <MultOp> <ExprAtom> <ProdTail>
-        case TIMES:
-        case DIVIDE:
-            return new ParseTree(NonTerminal.ProdTail,
-                                 Arrays.asList(
-                                               multOp(),
-                                               exprAtom(),
-                                               prodTail()
-                                               ));
-            // <ProdTail> --> EPSILON
-        default:
-            return new ParseTree(NonTerminal.ProdTail, Arrays.asList(new ParseTree(Terminal.EPSILON)));
+    /**
+     * function corresponding to the non terminal Atom
+     * [28] Atom               → -Atom
+     * [29]                    → ( ExprArith )
+     * [30]                    → [Number]
+     * [31]                    → [VarName]
+     * @return a parent node which is the non terminal Atom and the corresponding children
+     */
+    private ParseTree Atom(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case MINUS:
+                usedRules.add(28);
+                chldn.add(match(LexicalUnit.MINUS));
+                chldn.add(Atom());
+                break;
+            case LPAREN:
+                usedRules.add(29);
+                chldn.add(match(LexicalUnit.LPAREN));
+                chldn.add(ExprArith());
+                getNextToken();
+                chldn.add(match(LexicalUnit.RPAREN));
+                break;
+            case NUMBER:
+                usedRules.add(30);
+                chldn.add(match(LexicalUnit.NUMBER));
+                break;
+            case VARNAME:
+                usedRules.add(31);
+                chldn.add(match(LexicalUnit.VARNAME));
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
         }
+
+        return new ParseTree(new Symbol("Atom"), chldn);
     }
 
-    private ParseTree addOp() throws IOException, ParseException{
-        switch(current.getType()) {
-            // <AddOp>        --> PLUS
-        case PLUS:
-            return new ParseTree(NonTerminal.AddOp, Arrays.asList(match(Terminal.PLUS)));
-            // <AddOp>        --> MINUS
-        case MINUS:
-            return new ParseTree(NonTerminal.AddOp, Arrays.asList(match(Terminal.MINUS)));
-        default:
-            throw new ParseException(current);
+    /**
+     * function corresponding to the non terminal Print
+     * [32] Print            → PRINT([VarName])
+     * @return a Parent node which is the non terminal Print and the corresponding children
+     */
+    private ParseTree Print(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case PRINT:
+                usedRules.add(32);
+                chldn.add(match(LexicalUnit.PRINT));
+                getNextToken();
+                chldn.add(match(LexicalUnit.LPAREN));
+                getNextToken();
+                chldn.add(match(LexicalUnit.VARNAME));
+                getNextToken();
+                chldn.add(match(LexicalUnit.RPAREN));
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
         }
+        return new ParseTree(new Symbol("Print"), chldn);
     }
 
-    private ParseTree multOp() throws IOException, ParseException{
-        switch(current.getType()) {
-             // <MultOp>       --> TIMES
-        case TIMES:
-            return new ParseTree(NonTerminal.MultOp, Arrays.asList(match(Terminal.TIMES)));
-             // <MultOp>       --> DIVIDE
-        case DIVIDE:
-            return new ParseTree(NonTerminal.MultOp, Arrays.asList(match(Terminal.DIVIDE)));
-        default:
-            throw new ParseException(current);
+    /**
+     * function corresponding to the non terminal Read
+     * [33] Read             → READ([VarName])
+     * @return a Parent node which is the non terminal Read and the corresponding children
+     */
+    private ParseTree Read(){
+        ArrayList<ParseTree> chldn = new ArrayList<>();
+        getNextToken();
+        switch (lookAheadType){
+            case READ:
+                usedRules.add(33);
+                chldn.add(match(LexicalUnit.READ));
+                getNextToken();
+                chldn.add(match(LexicalUnit.LPAREN));
+                getNextToken();
+                chldn.add(match(LexicalUnit.VARNAME));
+                getNextToken();
+                chldn.add(match(LexicalUnit.RPAREN));
+                break;
+            default:
+                syntaxError(lookAhead);
+                break;
         }
+        return new ParseTree(new Symbol("Read"), chldn);
     }
 
-    private ParseTree cond() throws IOException, ParseException{
-        // <Cond>         --> ExprArith Comp ExprArith
-        return new ParseTree(NonTerminal.Cond,
-                             Arrays.asList(
-                                           exprArith(),
-                                           comp(),
-                                           exprArith()
-                                           ));
+    /**
+     * matching function checking whether the look ahead is equal to the expected
+     * Lexical Unit => essential to a predictive parser
+     * if doesn't match, launch an error
+     * @param expectedTokenUnit expected Lexical unit
+     * @return a Parent node of the ParseTree
+     */
+    private ParseTree match(LexicalUnit expectedTokenUnit){
+        if(expectedTokenUnit.equals(lookAheadType)){
+            ParseTree parent = new ParseTree(lookAhead);
+            actualToken = lookAhead;
+            return parent;
+        }else
+            syntaxError(lookAhead);
+
+        return null;
     }
 
-
-    private ParseTree ifI() throws IOException, ParseException{
-        // Cannot be simply named "if"
-        // <If> --> IF LPAREN Cond RPAREN THEN Code MaybeElse END
-        return new ParseTree(NonTerminal.If,
-                             Arrays.asList(
-						match(Terminal.IF),
-						match(Terminal.LPAREN),
-                        cond(),
-						match(Terminal.RPAREN),
-                        match(Terminal.THEN),
-                        code(),
-                        maybeElse(),
-                        match(Terminal.END)));
-    }
-
-    private ParseTree maybeElse() throws IOException, ParseException{
-        switch(current.getType()) {
-            // <MaybeElse>    --> ELSE Code
-        case ELSE:
-            return new ParseTree(NonTerminal.MaybeElse,
-                                 Arrays.asList(
-                                               match(Terminal.ELSE),
-                                               code()
-                                               ));
-            // <MaybeElse> --> EPSILON
-        default:
-			return new ParseTree(NonTerminal.Code, Arrays.asList(new ParseTree(Terminal.EPSILON)));
+    /**
+     * check if the lookahead has already been matched, if yes, then goes to the
+     * next one, if not, doens't move
+     */
+    private void getNextToken(){
+        // we get the next token only if the lookahead has already been treated
+        // as we can't go backward, we must have a limiting variable
+        if(actualToken == null || actualToken.equals(lookAhead)){
+            try{
+                lookAhead = lexer.nextToken();
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+            lookAheadType = lookAhead.getType(); // retrieve the lexical unit of the token
         }
+
     }
 
-
-    private ParseTree comp() throws IOException, ParseException{
-        List<Terminal> altComp = Arrays.asList(Terminal.EQUAL, Terminal.GREATER, Terminal.SMALLER);
-        switch(current.getType()) {
-            // Comp --> EQUAL
-        case EQUAL:
-            return new ParseTree(NonTerminal.Comp, Arrays.asList(match(Terminal.EQUAL)));
-            // Comp --> GREATER
-        case GREATER:
-            return new ParseTree(NonTerminal.Comp, Arrays.asList(match(Terminal.GREATER)));
-            // Comp --> SMALLER
-        case SMALLER:
-            return new ParseTree(NonTerminal.Comp, Arrays.asList(match(Terminal.SMALLER)));
-        default:
-            throw new ParseException(current, NonTerminal.Comp, altComp);
-        }
-    }
-
-    private ParseTree whileI() throws IOException, ParseException{
-        // <While>        --> WHILE LPAREN Cond RPAREN DO Code END
-            return new ParseTree(NonTerminal.While,
-                                 Arrays.asList(
-							match(Terminal.WHILE),
-							match(Terminal.LPAREN),
-                            cond(),
-                            match(Terminal.RPAREN),
-                            match(Terminal.DO),
-                            code(),
-                            match(Terminal.END)
-                                               ));
-    }
-
-
-    private ParseTree print() throws IOException, ParseException{
-        // <Print>        --> PRINT LPAREN VARNAME RPAREN
-        return new ParseTree(NonTerminal.Print,
-                             Arrays.asList(
-                                          match(Terminal.PRINT),
-                                          match(Terminal.LPAREN),
-                                          match(Terminal.VARNAME),
-                                          match(Terminal.RPAREN)
-                                          ));
-    }
-
-    private ParseTree read() throws IOException, ParseException{
-        // <Read>         --> READ LPAREN VARNAME RPAREN
-        return new ParseTree(NonTerminal.Read,
-                             Arrays.asList(
-                                           match(Terminal.READ),
-                                           match(Terminal.LPAREN),
-                                           match(Terminal.VARNAME),
-                                           match(Terminal.RPAREN)
-                                           ));
+    /**
+     * launches an error, giving the problematic token, his line and column in the
+     * input text file
+     * print the rules until the problem
+     * @param token problematic token
+     */
+    private void syntaxError(Symbol token){
+        printUsedRules();
+        System.err.println("Error! Please check the token: " + token.getValue() + " line: " + token.getLine() + " column: "+token.getColumn());
+        System.exit(1);
     }
 }
-
-
-

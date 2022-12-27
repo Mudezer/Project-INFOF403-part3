@@ -1,0 +1,29 @@
+[1] <Program>           → BEGIN [ProgName] <Code> END
+[2] <Code>              → <Instruction> , <Code>
+[3]                     → ε
+[4] <Instruction>       → <Assign>
+[5]                     → <If>
+[6]                     → <While>
+[7]                     → <Print>
+[8]                     → <Read>
+[9] <If>                → IF (<Cond>) THEN <Code> END
+[10]                    → IF (<Cond>) THEN <Code> ELSE <Code> END
+[11] <While>            → WHILE (<Cond>) DO <Code> END
+[12] <Cond>             → <ExprArith> = <ExprArith>
+[13]                    → <ExprArith> > <ExprArith>
+[14]                    → <ExprArith> < <ExprArith>
+[15] <ExprArith>        → <ExprArith> + <Prod>
+[16]                    → <ExprArith> - <Prod>
+[17]                    → <Prod>
+[18] <Prod>             → <Prod> * <Atom>
+[19]                    → <Prod> / <Atom>
+[20]                    → <Atom>
+[21] <Atom>             → -<Atom>
+[22]                    → ( <ExprArith> )
+[23]                    → [Number]
+[24]                    → [VarName]
+[25] <Assign>           → [VarName] := <ExprArith>
+[26] <Print>            → PRINT([VarName])
+[27] <Read>             → READ([VarName])
+
+

@@ -1,24 +1,28 @@
 all:
 	jflex src/LexicalAnalyzer.flex
-	jflex src/GrammarReader.flex
-	javac -d bin -cp src/ src/*.java
-	mkdir -p dist/
-	jar cfe dist/Part2.jar WriteTree -C bin .
-	jar cfe dist/ProcessGrammar.jar ProcessGrammar -C bin .
-	# javadoc -private -html5 src/*.java -d doc/javadoc
+	javac -d bin -cp src/ src/Main.java
+	jar cfe dist/part2.jar Main -C bin .
+	javadoc -private src/Main.java -d doc/javadoc
+
+testing_Lex:
+	java -jar dist/part2.jar test/Factorial.fs
+
+tested:
+	java -jar dist/part2.jar test/testIF.fs
+
+testing:
+	java -jar dist/part2.jar -wt more/testIF.tex test/testIF.fs
+	java -jar dist/part2.jar -wt more/trash.tex test/trash.fs
+#	java -jar dist/part2.jar -wt more/tree.tex test/euclid.co
+#	java -jar dist/part2.jar -wt more/Factorial.tex test/Factorial.fs
+#	pdflatex more/tree.tex
+
 
 clean:
-	rm -f src/*.class
-	rm -f src/*.java~
-	rm -f bin/*.class
-	rm -f dist/*.jar
-	rm -f test-results/*.aux
-	rm -f test-results/*.log
+	rm bin/*.class
+	rm dist/part2.jar
+	rm src/LexicalAnalyzer.java
+	rm src/*.java~
+	rm doc/javadoc
 
-.PHONY: test
-test:
-	java -jar dist/ProcessGrammar.jar -pat more/Fortress_Grammar.txt
-	java -jar dist/ProcessGrammar.jar -wat more/Action-table.txt more/Fortress_Grammar.txt
-	# java -jar dist/Part2.jar -wt 07-ifThen.tex test/07-ifThen.fs
-	# java -jar dist/Part2.jar -wt 07-voidIfThen.tex test/07-voidIfThen.fs
-	# pdflatex 07-voidIfThen.tex
+

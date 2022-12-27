@@ -1,45 +1,95 @@
-public class Symbol {
-    private Terminal terminal;
-    private NonTerminal nonTerminal;
+public class Symbol{
+	public static final int UNDEFINED_POSITION = -1;
+	public static final Object NO_VALUE = null;
+	public static final LexicalUnit NO_UNIT = null;
 
-    public Symbol(Terminal term) {
-        terminal = term;
-        nonTerminal = null;
-    }
+	private final LexicalUnit type;
+	private final Object value;
+	private final int line,column;
 
-    public Symbol(NonTerminal nonTerm) {
-        nonTerminal = nonTerm;
-        terminal = null;
-    }
+	public Symbol(LexicalUnit unit,int line,int column,Object value){
+    	this.type	= unit;
+		this.line	= line+1;
+		this.column	= column;
+		this.value	= value;
+	}
+	
+	public Symbol(LexicalUnit unit,int line,int column){
+		this(unit,line,column,NO_VALUE);
+	}
+	
+	public Symbol(LexicalUnit unit,int line){
+		this(unit,line,UNDEFINED_POSITION,NO_VALUE);
+	}
+	
+	public Symbol(LexicalUnit unit){
+		this(unit,UNDEFINED_POSITION,UNDEFINED_POSITION,NO_VALUE);
+	}
+	
+	public Symbol(LexicalUnit unit,Object value){
+		this(unit,UNDEFINED_POSITION,UNDEFINED_POSITION,value);
+	}
 
-    public Terminal getTerminal() {
-        return terminal;
-    }
+	/**
+	 * new constructor which is composed of only the value
+	 * @param value of the token
+	 */
+	public Symbol(Object value) {
+		this(NO_UNIT, UNDEFINED_POSITION, UNDEFINED_POSITION, value);
+	}
 
-    public NonTerminal getNonTerminal() {
-        return nonTerminal;
-    }
+	public boolean isTerminal(){
+		return this.type != null;
+	}
+	
+	public boolean isNonTerminal(){
+		return this.type == null;
+	}
+	
+	public LexicalUnit getType(){
+		return this.type;
+	}
+	
+	public Object getValue(){
+		return this.value;
+	}
+	
+	public int getLine(){
+		return this.line;
+	}
+	
+	public int getColumn(){
+		return this.column;
+	}
+	
+	@Override
+	public int hashCode(){
+		final String value	= this.value != null? this.value.toString() : "null";
+		final String type		= this.type  != null? this.type.toString()  : "null";
+		return new String(value+"_"+type).hashCode();
+	}
 
-    public boolean isTerminal() {
-        return (terminal != null && nonTerminal == null);
-    }
+	@Override
+	public String toString(){
+		if(this.isTerminal()){
+			final String value	= this.value != null? this.value.toString() : "null";
+			final String type		= this.type  != null? this.type.toString()  : "null";
+			return String.format("token: %-15slexical unit: %s", value, type);
+		}
+		return "Non-terminal symbol";
+	}
 
-    public boolean isNonTerminal() {
-        return (nonTerminal != null && terminal == null);
-    }
+	/**
+	 * convert the value or the lexical unit into a string
+	 * @return the value or the lexical unit following if the token is terminal or not
+	 */
+	public String toTexString() {
 
-    public boolean isEpsilon() {
-        return (nonTerminal == null && terminal.equals(Terminal.EPSILON));
-    }
+//		if(isNonTerminal()){
+//			return this.value.toString();
+//		}
+		return this.value.toString();
+	}
 
-    @Override
-    public String toString() {
-        if (isTerminal()) {
-                return terminal.toString();
-        } else if (isNonTerminal()) {
-            return nonTerminal.toString();
-        } else {
-            return "InvalidSymbol";
-        }
-    }
+
 }

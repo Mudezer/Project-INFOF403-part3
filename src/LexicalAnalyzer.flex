@@ -7,11 +7,11 @@ import java.util.regex.PatternSyntaxException;
 %line                  // Use line counter (yyline variable)
 %column                // Use character counter by line (yycolumn variable)
 %function nextToken
-%type Token
+%type Symbol
 %yylexthrow PatternSyntaxException
 
 %eofval{
-	return new Token(Terminal.EOS, yyline, yycolumn);
+	return new Symbol(LexicalUnit.EOS, yyline, yycolumn);
 %eofval}
 
 //Extended Regular Expressions
@@ -57,43 +57,43 @@ Spaces         = {Space}+
     "::"              {yybegin(SHORTCOMMENTS);} // go to ignore mode
     "%%"              {yybegin(LONGCOMMENTS);} // go to ignore mode
 // Delimiters
-  "BEGIN"             {return new Token(Terminal.BEGIN, yyline, yycolumn, yytext());}
-  "END"               {return new Token(Terminal.END, yyline, yycolumn, yytext());}
-  ","                 {return new Token(Terminal.COMMA, yyline, yycolumn, yytext());}
+  "BEGIN"             {return new Symbol(LexicalUnit.BEGIN, yyline, yycolumn, yytext());}
+  "END"               {return new Symbol(LexicalUnit.END, yyline, yycolumn, yytext());}
+  ","                 {return new Symbol(LexicalUnit.COMMA, yyline, yycolumn, yytext());}
 // Assignation
-  ":="                {return new Token(Terminal.ASSIGN, yyline, yycolumn, yytext());}
+  ":="                {return new Symbol(LexicalUnit.ASSIGN, yyline, yycolumn, yytext());}
 // Parenthesis
-  "("                 {return new Token(Terminal.LPAREN, yyline, yycolumn, yytext());}
-  ")"                 {return new Token(Terminal.RPAREN, yyline, yycolumn, yytext());}
+  "("                 {return new Symbol(LexicalUnit.LPAREN, yyline, yycolumn, yytext());}
+  ")"                 {return new Symbol(LexicalUnit.RPAREN, yyline, yycolumn, yytext());}
 // Arithmetic signs
-  "+"                 {return new Token(Terminal.PLUS, yyline, yycolumn, yytext());}
-  "-"                 {return new Token(Terminal.MINUS, yyline, yycolumn, yytext());}
-  "*"                 {return new Token(Terminal.TIMES, yyline, yycolumn, yytext());}
-  "/"                 {return new Token(Terminal.DIVIDE, yyline, yycolumn, yytext());}
+  "+"                 {return new Symbol(LexicalUnit.PLUS, yyline, yycolumn, yytext());}
+  "-"                 {return new Symbol(LexicalUnit.MINUS, yyline, yycolumn, yytext());}
+  "*"                 {return new Symbol(LexicalUnit.TIMES, yyline, yycolumn, yytext());}
+  "/"                 {return new Symbol(LexicalUnit.DIVIDE, yyline, yycolumn, yytext());}
 // Conditional keywords
-  "IF"                {return new Token(Terminal.IF, yyline, yycolumn, yytext());}
-  "THEN"              {return new Token(Terminal.THEN, yyline, yycolumn, yytext());}
-  "ELSE"              {return new Token(Terminal.ELSE, yyline, yycolumn, yytext());}
+  "IF"                {return new Symbol(LexicalUnit.IF, yyline, yycolumn, yytext());}
+  "THEN"              {return new Symbol(LexicalUnit.THEN, yyline, yycolumn, yytext());}
+  "ELSE"              {return new Symbol(LexicalUnit.ELSE, yyline, yycolumn, yytext());}
 // Loop keywords
-  "WHILE"             {return new Token(Terminal.WHILE, yyline, yycolumn, yytext());}
-  "DO"                {return new Token(Terminal.DO, yyline, yycolumn, yytext());}
+  "WHILE"             {return new Symbol(LexicalUnit.WHILE, yyline, yycolumn, yytext());}
+  "DO"                {return new Symbol(LexicalUnit.DO, yyline, yycolumn, yytext());}
 // Comparison operators
-  "="                 {return new Token(Terminal.EQUAL, yyline, yycolumn, yytext());}
-  ">"                 {return new Token(Terminal.GREATER, yyline, yycolumn, yytext());}
-  "<"                 {return new Token(Terminal.SMALLER, yyline, yycolumn, yytext());}
+  "="                 {return new Symbol(LexicalUnit.EQUAL, yyline, yycolumn, yytext());}
+  ">"                 {return new Symbol(LexicalUnit.GREATER, yyline, yycolumn, yytext());}
+  "<"                 {return new Symbol(LexicalUnit.SMALLER, yyline, yycolumn, yytext());}
 // IO keywords
-  "PRINT"             {return new Token(Terminal.PRINT, yyline, yycolumn, yytext());}
-  "READ"              {return new Token(Terminal.READ, yyline, yycolumn, yytext());}
+  "PRINT"             {return new Symbol(LexicalUnit.PRINT, yyline, yycolumn, yytext());}
+  "READ"              {return new Symbol(LexicalUnit.READ, yyline, yycolumn, yytext());}
 // Numbers
-  {BadNumber}        {System.err.println("Warning! Numbers with leading zeros are not permitted: " + yytext()); return new Token(Terminal.NUMBER, yyline, yycolumn, Integer.valueOf(yytext()));}
-  {Number}           {return new Token(Terminal.NUMBER, yyline, yycolumn, Integer.valueOf(yytext()));}
+  {BadNumber}        {System.err.println("Warning! Numbers with leading zeros are not permitted: " + yytext()); return new Symbol(LexicalUnit.NUMBER, yyline, yycolumn, Integer.valueOf(yytext()));}
+  {Number}           {return new Symbol(LexicalUnit.NUMBER, yyline, yycolumn, Integer.valueOf(yytext()));}
 // Variable Names
-  {VarName}           {return new Token(Terminal.VARNAME, yyline, yycolumn, yytext());}
+  {VarName}           {return new Symbol(LexicalUnit.VARNAME, yyline, yycolumn, yytext());}
 // Program Names
-  {ProgName}          {return new Token(Terminal.PROGNAME, yyline, yycolumn, yytext());}
-  {BadProgName}       {System.err.println("Warning! Program names in uppercase are not permitted: " + yytext()); return new Token(Terminal.PROGNAME, yyline, yycolumn, yytext());}
+  {ProgName}          {return new Symbol(LexicalUnit.PROGNAME, yyline, yycolumn, yytext());}
+  {BadProgName}       {System.err.println("Warning! Program names in uppercase are not permitted: " + yytext()); return new Symbol(LexicalUnit.PROGNAME, yyline, yycolumn, yytext());}
 // Other
   {Spaces}	          {} // ignore spaces
   {EndLine}           {} // ignore endlines
-  [^]                 {throw new PatternSyntaxException("Unmatched Token(s) found.",yytext(),yyline);} // unmatched Tokens gives an error
+  [^]                 {throw new PatternSyntaxException("Unmatched symbol(s) found.",yytext(),yyline);} // unmatched symbols gives an error
 }

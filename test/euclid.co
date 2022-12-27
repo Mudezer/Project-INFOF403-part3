@@ -1,0 +1,21 @@
+:: Euclid's algorithm found on https://en.wikipedia.org/wiki/Euclidean_algorithm#Implementations
+
+BEGIN Euclid
+
+    READ(a) ,
+    READ(b) ,
+
+    WHILE (b>0) DO
+        WHILE (b<0) DO
+            c := b ,
+            WHILE ((a+1) > b) DO
+                a := a-b ,
+            END ,
+            b := a ,
+            a := b ,
+        END ,
+    END ,
+
+    PRINT(a) ,
+
+END

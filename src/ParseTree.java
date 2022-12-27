@@ -1,111 +1,79 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.function.Predicate;
 
-/** A skeleton class to represent parse trees.
- *  The arity is not fixed: a node can have 0, 1 or more children.
- *  Trees are represented in the following way:
- *                        Tree :== TreeLabel * List<Tree>
- *  In other words, trees are defined recursively:
- *  A tree is a root (with a label of type TreeLabel) and a list of trees children.
- *  Thus, a leave is simply a tree with no children (its list of children is empty).
- *  This class can also be seen as representing the Node of a tree,
- *  in which case a tree is simply represented as its root.
- * @author Léo Exibard
+/**
+ * A skeleton class to represent parse trees. The arity is not fixed: a node can
+ * have 0, 1 or more children. Trees are represented in the following way: Tree
+ * :== Symbol * List<Tree> In other words, trees are defined recursively: A tree
+ * is a root (with a label of type Symbol) and a list of trees children. Thus, a
+ * leave is simply a tree with no children (its list of children is empty). This
+ * class can also be seen as representing the Node of a tree, in which case a
+ * tree is simply represented as its root.
+ * 
+ * @author Léo Exibard, Sarah Winter
  */
 
 public class ParseTree {
-    private TreeLabel label;             // The label of the root of the tree
+    private Symbol label;// The label of the root of the tree
     private List<ParseTree> children; // Its children, which are trees themselves
 
-    /** Creates a singleton tree with only a root labeled by lbl.
+    /**
+     * Creates a singleton tree with only a root labeled by lbl.
+     * 
      * @param lbl The label of the root
      */
-    public ParseTree(TreeLabel lbl) {
+    public ParseTree(Symbol lbl) {
         this.label = lbl;
         this.children = new ArrayList<ParseTree>(); // This tree has no children
     }
 
-    /** Creates a singleton tree with only a root labeled by the variable nonTerm.
-     * @param nonTerm The label of the root, given as a NonTerminal
-     */
-    public ParseTree(NonTerminal nonTerm) {
-        this.label = new TreeLabel(nonTerm);
-        this.children = new ArrayList<ParseTree>(); // This tree has no children
-    }
-
-    /** Creates a singleton tree with only a root labeled by the token tok
-     * @param tok The label of the root, given as a Token
-     */
-    public ParseTree(Token tok) {
-        this.label = new TreeLabel(tok);
-        this.children = new ArrayList<ParseTree>(); // This tree has no children
-    }
-
-    /** Creates a singleton tree with only a root labeled by the terminal term
-     * @param term The label of the root, given as a Terminal
-     */
-    public ParseTree(Terminal term) {
-        this.label = new TreeLabel(new Token(term));
-        this.children = new ArrayList<ParseTree>(); // This tree has no children
-    }
-
-
-    /** Creates a tree with root labeled by lbl and children chdn.
-     * @param lbl The label of the root
+    /**
+     * Creates a tree with root labeled by lbl and children chdn.
+     * 
+     * @param lbl  The label of the root
      * @param chdn Its children
      */
-    public ParseTree(TreeLabel lbl, List<ParseTree> chdn) {
+    public ParseTree(Symbol lbl, List<ParseTree> chdn) {
         this.label = lbl;
         this.children = chdn;
     }
 
-    /** Creates a tree with root labeled by the variable nonTerm and children chdn.
-     * @param nonTerm The label of the root, given as a NonTerminal
-     * @param chdn Its children
-     */
-    public ParseTree(NonTerminal nonTerm, List<ParseTree> chdn) {
-        this.label = new TreeLabel(nonTerm);
-        this.children = chdn;
+    public Symbol getLabel(){
+        return this.label;
     }
 
-    /** Creates a tree with root labeled by the token tok and children chdn.
-     * @param tok The label of the root, given as a Token
-     * @param chdn Its children
-     */
-    public ParseTree(Token tok, List<ParseTree> chdn) {
-        this.label = new TreeLabel(tok);
-        this.children = chdn;
+    public List<ParseTree> getChildren() {
+        return children;
     }
 
-    /** Writes the tree as LaTeX code
+    /**
+     * Writes the tree as LaTeX code
      */
     public String toLaTexTree() {
         StringBuilder treeTeX = new StringBuilder();
         treeTeX.append("[");
-        if (label.isEpsilon()){
-            treeTeX.append("{$\\varepsilon$}");
-        }
-        else {
-            treeTeX.append("{"+label.toTeX()+"}");
-        }
+        treeTeX.append("{" + label.toTexString() + "}");
         treeTeX.append(" ");
-        for (ParseTree child: children) {
+
+        for (ParseTree child : children) {
             treeTeX.append(child.toLaTexTree());
-                }
+        }
         treeTeX.append("]");
         return treeTeX.toString();
-        
     }
 
-    /** Writes the tree as TikZ code.
-     *  TikZ is a language to specify drawings in LaTeX files.
+    /**
+     * Writes the tree as TikZ code. TikZ is a language to specify drawings in LaTeX
+     * files.
      */
     public String toTikZ() {
         StringBuilder treeTikZ = new StringBuilder();
         treeTikZ.append("node {");
-        treeTikZ.append(label.toTeX());
+        treeTikZ.append(label.toTexString());  // Implement this yourself in Symbol.java
         treeTikZ.append("}\n");
-        for (ParseTree child: children) {
+        for (ParseTree child : children) {
             treeTikZ.append("child { ");
             treeTikZ.append(child.toTikZ());
             treeTikZ.append(" }\n");
@@ -113,33 +81,110 @@ public class ParseTree {
         return treeTikZ.toString();
     }
 
-    /** Writes the tree as a TikZ picture.
-     *  A TikZ picture embeds TikZ code so that LaTeX undertands it.
+    /**
+     * Writes the tree as a TikZ picture. A TikZ picture embeds TikZ code so that
+     * LaTeX undertands it.
      */
     public String toTikZPicture() {
         return "\\begin{tikzpicture}[tree layout]\n\\" + toTikZ() + ";\n\\end{tikzpicture}";
     }
 
-    /** Writes the tree as a forest picture.
-     *  Returns the tree in forest enviroment using the latex code of the tree
+
+    /**
+     * Writes the tree as a forest picture. Returns the tree in forest enviroment
+     * using the latex code of the tree
      */
     public String toForestPicture() {
-        return "\\begin{forest}for tree={rectangle,draw, l sep=20pt}" + toLaTexTree() + ";\n\\end{forest}";
+        return "\\begin{forest}for tree={rectangle, draw, l sep=20pt}" + toLaTexTree() + ";\n\\end{forest}";
     }
 
-    /** Writes the tree as a LaTeX document which can be compiled using PDFLaTeX,
+    /**
+     * Writes the tree as a LaTeX document which can be compiled using PDFLaTeX.
+     * <br>
+     * <br>
+     * The result can be used with the command:
+     * 
+     * <pre>
+     * pdflatex some-file.tex
+     * </pre>
      */
     public String toLaTeX() {
-        return "\\documentclass[border=5pt]{standalone}\n\n\\usepackage{tikz}\n\\usepackage{forest}\n\n\\begin{document}\n\n" + toForestPicture() + "\n\n\\end{document}\n%% Local Variables:\n%% TeX-engine: pdflatex\n%% End:";
+        return "\\documentclass[border=5pt]{standalone}\n\n\\usepackage{tikz}\n\\usepackage{forest}\n\n\\begin{document}\n\n"
+                + toForestPicture() + "\n\n\\end{document}\n%% Local Variables:\n%% TeX-engine: pdflatex\n%% End:";
     }
 
-    /** Writes the tree as a LaTeX document which can be compiled (using the LuaLaTeX engine).
-     *  Be careful that such code will not compile with PDFLaTeX,
-     *  since the tree drawing algorithm is written in Lua.
-     *  The code is not very readable as such, but you can have a look at the outputted file
-     *  if you want to understand better.
-     */
-    public String toLaTeXwithLua() {
-        return "\\RequirePackage{luatex85}\n\\documentclass{standalone}\n\n\\usepackage{tikz}\n\n\\usetikzlibrary{graphdrawing, graphdrawing.trees}\n\n\\begin{document}\n\n" + toTikZPicture() + "\n\n\\end{document}\n%% Local Variables:\n%% TeX-engine: luatex\n%% End:";
+    public String toSdoutString(){
+        StringBuilder bigstring = new StringBuilder();
+        bigstring.append(label.toTexString() + "\n");
+        for (ParseTree child: children){
+            bigstring.append(child.toSdoutString());
+        }
+
+        return bigstring.toString();
     }
+
+//    private Set<LexicalUnit> discardUnit =
+//    public void generateAST(){
+//        if(children.isEmpty()) return;
+//
+//
+//        children.removeIf(child -> getLabel().getValue().toString().equals("Prod"));
+//        children.forEach(child -> child.generateAST());
+//    }
+
+
+
+//    public void deleteNodes(Predicate<Symbol> predicate) {
+//        // If the label of the current node satisfies the predicate, remove it from the children list of its parent
+//        if (predicate.test(label)) {
+//            children.clear();
+//            return;
+//        }
+//        // Otherwise, traverse the children of the current node
+//        for (ParseTree child : children) {
+//            child.deleteNodes(predicate);
+//        }
+//    }
+//    public void deleteNodes() {
+//        // If the label of the current node has the specified type and value, remove it from the children list of its parent
+//        if (label.getValue().toString().equals("ProdF")) {
+//            children.clear();
+//            return;
+//        }
+//        // Otherwise, traverse the children of the current node
+//        for (ParseTree child : children) {
+//            child.deleteNodes();
+//        }
+//    }
+
+
+    public AbstractSyntaxTree createAST(ParseTree parseTree){
+        ArrayList<AbstractSyntaxTree> chldn = new ArrayList<>();
+        for(ParseTree child: parseTree.children){
+            if(unwantedChild(child.getLabel())){
+                for(ParseTree grandchild: child.children){
+                    chldn.add(createAST(grandchild));
+                }
+            }else{
+                chldn.add(createAST(child));
+            }
+        }
+        return new AbstractSyntaxTree(parseTree.label, chldn);
+    }
+
+    public boolean unwantedChild(Symbol symbol){
+        switch (symbol.getValue().toString()){
+            case "Atom":
+            case "ProdF":
+            case "ExprArithF":
+            case "Prod":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+
+
+
 }
