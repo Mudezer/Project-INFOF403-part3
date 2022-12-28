@@ -78,16 +78,11 @@ public class Main{
     //        output.close();
     //    }
 
-//        String str = parseTree.toSdoutString();
-//        System.out.println(str);
-
         /**
          * AST PRE TREE GENERATION
          * LATEX FROM AST PRE TREE
          */
-
-
-        AbstractSyntaxTree ast = ASTGeneration.generateTree(parseTree); // create another tree with the same structure but with different nodes
+        AbstractSyntaxTree ast = ASTGeneration.getAST(parseTree); // create another tree with the same structure but with different nodes
         if(latex!=null){
             output = new FileWriter(latex);
             output.write(ast.toLaTeX());

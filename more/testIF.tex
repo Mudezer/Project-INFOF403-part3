@@ -5,7 +5,7 @@
 
 \begin{document}
 
-\begin{forest}for tree={rectangle, draw, l sep=20pt}[{Program} [{BEGIN} ][{Test} ][{Code} [{Instruction} [{If} [{IF} ][{(} ][{Cond} [{ExprArith} [{Prod} [{Atom} [{var1} ]][{ProdF} [{$\varepsilon$} ]]][{ExprArithF} [{$\varepsilon$} ]]][{Comp} [{=} ][{ExprArith} [{Prod} [{Atom} [{3} ]][{ProdF} [{$\varepsilon$} ]]][{ExprArithF} [{$\varepsilon$} ]]]]][{)} ][{THEN} ][{Code} [{Instruction} [{Assign} [{var2} ][{:=} ][{ExprArith} [{Prod} [{Atom} [{-} ][{Atom} [{4} ]]][{ProdF} [{$\varepsilon$} ]]][{ExprArithF} [{$\varepsilon$} ]]]]][{CodeF} [{,} ][{Code} [{Instruction} [{Assign} [{var3} ][{:=} ][{ExprArith} [{Prod} [{Atom} [{var1} ]][{ProdF} [{/} ][{Atom} [{5} ]][{ProdF} [{$\varepsilon$} ]]]][{ExprArithF} [{$\varepsilon$} ]]]]][{CodeF} [{,} ][{Code} [{Instruction} [{Assign} [{var4} ][{:=} ][{ExprArith} [{Prod} [{Atom} [{var3} ]][{ProdF} [{*} ][{Atom} [{2} ]][{ProdF} [{$\varepsilon$} ]]]][{ExprArithF} [{$\varepsilon$} ]]]]][{CodeF} [{,} ][{code} [{$\varepsilon$} ]]]]]]]][{IfSeq} [{END} ]]]][{CodeF} [{$\varepsilon$} ]]][{END} ]];
+\begin{forest}for tree={rectangle, draw, l sep=20pt}[{Program} [{Test} ][{Code} [{Instruction} [{If} [{IF} ][{(} ][{Cond} [{ExprArith} [{Prod} [{var1} ]][{ExprArithF} ]][{Comp} [{=} ][{ExprArith} [{Prod} [{3} ]][{ExprArithF} ]]]][{)} ][{THEN} ][{Code} [{Instruction} [{Assign} [{var2} ][{:=} ][{ExprArith} [{Prod} [{-} ][{4} ]][{ExprArithF} ]]]][{CodeF} [{,} ][{Code} [{Instruction} [{Assign} [{var3} ][{:=} ][{ExprArith} [{Prod} [{var1} ][{/} ][{5} ]][{ExprArithF} ]]]][{CodeF} [{,} ][{Code} [{Instruction} [{Assign} [{var4} ][{:=} ][{ExprArith} [{Prod} [{var3} ][{*} ][{2} ]][{ExprArithF} ]]]][{CodeF} [{,} ][{code} ]]]]]]][{IfSeq} ]]][{CodeF} ]]];
 \end{forest}
 
 \end{document}
