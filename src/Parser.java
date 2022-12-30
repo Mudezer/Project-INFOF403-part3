@@ -63,8 +63,9 @@ public class Parser {
             case END:
             case ELSE:
                 usedRules.add(3);
-                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
-                return new ParseTree(new Symbol("code"), chldn);
+                // chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                // return new ParseTree(new Symbol("Code"), chldn);
+                return null;
             default:
         }
         usedRules.add(2);
@@ -86,8 +87,9 @@ public class Parser {
             case END:
             case ELSE:
                 usedRules.add(5);
-                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
-                return new ParseTree(new Symbol("CodeF"), chldn);
+                // chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                // return new ParseTree(new Symbol("CodeF"), chldn);
+                return null;
             case COMMA:
                 usedRules.add(4);
                 chldn.add(match(LexicalUnit.COMMA));
@@ -338,8 +340,9 @@ public class Parser {
             case SMALLER:
             case RPAREN:
                 usedRules.add(23);
-                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
-                return new ParseTree(new Symbol("ExprArithF"), chldn);
+                // chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                // return new ParseTree(new Symbol("ExprArithF"), chldn);
+                return null;
             case PLUS:
                 usedRules.add(21);
                 chldn.add(match(LexicalUnit.PLUS));
@@ -395,8 +398,9 @@ public class Parser {
             case MINUS:
             case RPAREN:
                 usedRules.add(27);
-                chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
-                return new ParseTree(new Symbol("ProdF"), chldn);
+                // chldn.add(new ParseTree(new Symbol("$\\varepsilon$")));
+                // return new ParseTree(new Symbol("ProdF"), chldn);
+                return null;
             case TIMES:
                 usedRules.add(25);
                 chldn.add(match(LexicalUnit.TIMES));

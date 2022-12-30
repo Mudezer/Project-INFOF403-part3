@@ -82,7 +82,8 @@ public class Main{
          * AST PRE TREE GENERATION
          * LATEX FROM AST PRE TREE
          */
-        AbstractSyntaxTree ast = ASTGeneration.getAST(parseTree); // create another tree with the same structure but with different nodes
+        // AbstractSyntaxTree ast = ASTGeneration.getAST(parseTree); // create another tree with the same structure but with different nodes
+        AbstractSyntaxTree ast = ASTGeneration.ProgramNode(parseTree);
         if(latex!=null){
             output = new FileWriter(latex);
             output.write(ast.toLaTeX());

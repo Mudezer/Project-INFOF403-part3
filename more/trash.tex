@@ -5,7 +5,7 @@
 
 \begin{document}
 
-\begin{forest}for tree={rectangle, draw, l sep=20pt}[{Program} [{Trash} ][{Code} [{Instruction} [{Assign} [{a} ][{:=} ][{ExprArith} [{Prod} [{-} ][{2} ]][{ExprArithF} [{+} ][{Prod} [{3} ][{*} ][{(} ][{ExprArith} [{Prod} [{6} ]][{ExprArithF} [{+} ][{Prod} [{1} ]][{ExprArithF} ]]][{)} ][{/} ][{5} ]][{ExprArithF} ]]]]][{CodeF} ]]];
+\begin{forest}for tree={rectangle, draw, l sep=20pt}[{Program} [{Code} [{Assign} [{a} ][{+} [{*} [{2} ][{-1} ]][{/} [{*} [{3} ][{+} [{6} ][{1} ]]][{5} ]]]]]];
 \end{forest}
 
 \end{document}

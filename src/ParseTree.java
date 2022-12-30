@@ -57,7 +57,9 @@ public class ParseTree {
         treeTeX.append(" ");
 
         for (ParseTree child : children) {
-            treeTeX.append(child.toLaTexTree());
+            if(child != null) {
+                treeTeX.append(child.toLaTexTree());
+            }
         }
         treeTeX.append("]");
         return treeTeX.toString();
@@ -73,9 +75,12 @@ public class ParseTree {
         treeTikZ.append(label.toTexString());  // Implement this yourself in Symbol.java
         treeTikZ.append("}\n");
         for (ParseTree child : children) {
-            treeTikZ.append("child { ");
-            treeTikZ.append(child.toTikZ());
-            treeTikZ.append(" }\n");
+            if(child != null){
+                treeTikZ.append("child { ");
+                treeTikZ.append(child.toTikZ());
+                treeTikZ.append(" }\n");
+            }
+            
         }
         return treeTikZ.toString();
     }

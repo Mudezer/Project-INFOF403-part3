@@ -15,6 +15,10 @@ public class AbstractSyntaxTree {
         return label;
     }
 
+    public void setLabel(Symbol label) {
+        this.label = label;
+    }
+
     public AbstractSyntaxTree getParent() {
         return parent;
     }
@@ -40,6 +44,14 @@ public class AbstractSyntaxTree {
         this.parent = parent;
     }
 
+    public void addChild(AbstractSyntaxTree child) {
+        this.children.add(child);
+    }
+
+    public void removeChild(AbstractSyntaxTree child) {
+        this.children.remove(child);
+    }
+
     /**
      * Writes the tree as LaTeX code
      */
@@ -50,7 +62,9 @@ public class AbstractSyntaxTree {
         treeTeX.append(" ");
 
         for (AbstractSyntaxTree child : children) {
-            treeTeX.append(child.toLaTexTree());
+            if(child != null){
+                treeTeX.append(child.toLaTexTree());
+            }
         }
         treeTeX.append("]");
         return treeTeX.toString();
@@ -66,9 +80,12 @@ public class AbstractSyntaxTree {
         treeTikZ.append(label.toTexString());  // Implement this yourself in Symbol.java
         treeTikZ.append("}\n");
         for (AbstractSyntaxTree child : children) {
-            treeTikZ.append("child { ");
-            treeTikZ.append(child.toTikZ());
-            treeTikZ.append(" }\n");
+            if(child != null){
+                treeTikZ.append("child { ");
+                treeTikZ.append(child.toTikZ());
+                treeTikZ.append(" }\n");
+            }
+            
         }
         return treeTikZ.toString();
     }
