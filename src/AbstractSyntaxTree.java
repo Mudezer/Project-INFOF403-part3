@@ -5,7 +5,6 @@ public class AbstractSyntaxTree {
 
     private Symbol label;
     private List<AbstractSyntaxTree> children;
-    private AbstractSyntaxTree parent;
 
     public List<AbstractSyntaxTree> getChildren() {
         return children;
@@ -19,29 +18,15 @@ public class AbstractSyntaxTree {
         this.label = label;
     }
 
-    public AbstractSyntaxTree getParent() {
-        return parent;
-    }
-
-    public void setParent(AbstractSyntaxTree parent) {
-        this.parent = parent;
-    }
 
     public AbstractSyntaxTree(Symbol lbl){
         this.label = lbl;
         this.children = new ArrayList<AbstractSyntaxTree>();
-        this.parent = null;
     }
 
     public AbstractSyntaxTree(Symbol lbl, List<AbstractSyntaxTree> chldn){
         this.label = lbl;
         this.children = chldn;
-        this.parent = null;
-    }
-    public AbstractSyntaxTree(Symbol lbl, List<AbstractSyntaxTree> chldn, AbstractSyntaxTree parent){
-        this.label = lbl;
-        this.children = chldn;
-        this.parent = parent;
     }
 
     public void addChild(AbstractSyntaxTree child) {

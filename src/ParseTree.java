@@ -126,36 +126,4 @@ public class ParseTree {
 
         return bigstring.toString();
     }
-
-
-
-    public AbstractSyntaxTree createAST(ParseTree parseTree){
-        ArrayList<AbstractSyntaxTree> chldn = new ArrayList<>();
-        for(ParseTree child: parseTree.children){
-            if(unwantedChild(child.getLabel())){
-                for(ParseTree grandchild: child.children){
-                    chldn.add(createAST(grandchild));
-                }
-            }else{
-                chldn.add(createAST(child));
-            }
-        }
-        return new AbstractSyntaxTree(parseTree.label, chldn);
-    }
-
-    public boolean unwantedChild(Symbol symbol){
-        switch (symbol.getValue().toString()){
-            case "Atom":
-            case "ProdF":
-            case "ExprArithF":
-            case "Prod":
-                return true;
-            default:
-                return false;
-        }
-    }
-
-
-
-
 }

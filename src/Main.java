@@ -71,7 +71,7 @@ public class Main{
             if latex output file is given as argument then write in it
             if not, then don't
             !!!!!!! LATEX FROM ORIGINAL PARSE TREE
-         */
+    //      */
     //    if(latex != null){
     //        output = new FileWriter(latex);
     //        output.write(parseTree.toLaTeX());
@@ -82,13 +82,14 @@ public class Main{
          * AST PRE TREE GENERATION
          * LATEX FROM AST PRE TREE
          */
-        // AbstractSyntaxTree ast = ASTGeneration.getAST(parseTree); // create another tree with the same structure but with different nodes
         AbstractSyntaxTree ast = ASTGeneration.ProgramNode(parseTree);
         if(latex!=null){
             output = new FileWriter(latex);
             output.write(ast.toLaTeX());
             output.close();
         }
+
+
 
     }
 
