@@ -66,29 +66,20 @@ public class Main{
 
         //launch the parsing
         ParseTree parseTree = parser.Program();
-//        parser.printUsedRules();
-        /*
-            if latex output file is given as argument then write in it
-            if not, then don't
-            !!!!!!! LATEX FROM ORIGINAL PARSE TREE
-    //      */
-    //    if(latex != null){
-    //        output = new FileWriter(latex);
-    //        output.write(parseTree.toLaTeX());
-    //        output.close();
-    //    }
 
-        /**
-         * AST PRE TREE GENERATION
-         * LATEX FROM AST PRE TREE
-         */
+        //launch the AST generation based on the parse tree
         AbstractSyntaxTree ast = ASTGeneration.ProgramNode(parseTree);
-        if(latex!=null){
-            output = new FileWriter(latex);
-            output.write(ast.toLaTeX());
-            output.close();
-        }
+        // if(latex!=null){
+        //     output = new FileWriter(latex);
+        //     output.write(ast.toLaTeX());
+        //     output.close();
+        // }
 
+
+        //launch the LLVM code generation based on the AST
+        LLVMGenerator llvm = new LLVMGenerator();
+        String code = llvm.GenerateLLVMCode(ast);
+        System.out.println(code);
 
 
     }

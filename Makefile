@@ -11,9 +11,9 @@ tested:
 	java -jar dist/part3.jar test/testIF.fs
 
 testing:
-	java -jar dist/part3.jar -wt more/testIF.tex test/testIF.fs
-	java -jar dist/part3.jar -wt more/trash.tex test/trash.fs
-	java -jar dist/part3.jar -wt more/tree.tex test/euclid.co
+#	java -jar dist/part3.jar -wt more/testIF.tex test/testIF.fs
+#	java -jar dist/part3.jar -wt more/trash.tex test/trash.fs
+#	java -jar dist/part3.jar -wt more/tree.tex test/euclid.co
 	java -jar dist/part3.jar -wt more/Factorial.tex test/Factorial.fs
 #	pdflatex more/tree.tex
 
