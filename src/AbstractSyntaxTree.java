@@ -1,9 +1,22 @@
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * This class represents an abstract syntax tree. It is used to represent the
+ * syntax tree of a program.
+ * It has the same structure as the Parse tree, but it is not a subclass of it.
+ */
 public class AbstractSyntaxTree {
 
+    /**
+     * The label of the node.
+     */
     private Symbol label;
+
+    /**
+     * It's children, which are trees themselves.
+     */
     private List<AbstractSyntaxTree> children;
 
     public List<AbstractSyntaxTree> getChildren() {
@@ -18,12 +31,20 @@ public class AbstractSyntaxTree {
         this.label = label;
     }
 
-
+    /**
+     * Creates a singleton tree with only a root labeled by lbl.
+     * @param lbl The label of the root
+     */
     public AbstractSyntaxTree(Symbol lbl){
         this.label = lbl;
         this.children = new ArrayList<AbstractSyntaxTree>();
     }
 
+    /**
+     * Creates a tree with root labeled by lbl and children chldn.
+     * @param lbl The label of the root
+     * @param chldn Its children
+     */
     public AbstractSyntaxTree(Symbol lbl, List<AbstractSyntaxTree> chldn){
         this.label = lbl;
         this.children = chldn;
@@ -105,16 +126,6 @@ public class AbstractSyntaxTree {
     public String toLaTeX() {
         return "\\documentclass[border=5pt]{standalone}\n\n\\usepackage{tikz}\n\\usepackage{forest}\n\n\\begin{document}\n\n"
                 + toForestPicture() + "\n\n\\end{document}\n%% Local Variables:\n%% TeX-engine: pdflatex\n%% End:";
-    }
-
-    public String toSdoutString(){
-        StringBuilder bigstring = new StringBuilder();
-        bigstring.append(label.toTexString() + "\n");
-        for (AbstractSyntaxTree child: children){
-            bigstring.append(child.toSdoutString());
-        }
-
-        return bigstring.toString();
     }
 
 }

@@ -39,10 +39,18 @@ public class ParseTree {
         this.children = chdn;
     }
 
+    /**
+     * 
+     * @return The label of the root of the tree
+     */
     public Symbol getLabel(){
         return this.label;
     }
 
+    /**
+     * 
+     * @return The children of the tree
+     */
     public List<ParseTree> getChildren() {
         return children;
     }

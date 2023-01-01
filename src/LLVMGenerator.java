@@ -1,8 +1,12 @@
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class generates the LLVM code for a program, it is based on a abstract syntax tree.
+ */
 public class LLVMGenerator {
     
+    // contains the println and readInt functions
     private static String basicFunctions = 
             "@.strP = private unnamed_addr constant [4 x i8] c\"%d\\0A\\00\", align 1\n" +
             "\n" +
@@ -58,7 +62,11 @@ public class LLVMGenerator {
     private Integer nonPersisVariableNumb = 0;
     
 
-
+    /**
+     * Generates the LLVM code for a program.
+     * @param ast root of the abstract syntax tree of the program
+     * @return the LLVM code
+     */
     public String GenerateLLVMCode(AbstractSyntaxTree ast){
         reset();
         StringBuilder code = new StringBuilder();
@@ -68,14 +76,17 @@ public class LLVMGenerator {
         for(String var : this.variables){
             code.append("\t%").append(var).append(" = alloca i32\n");
         }
-        code.append("\t label %entry\n\n");
+        code.append("\tbr label %entry\n\n");
         for(SubFunctions sub : this.subFunctions){
             code.append(sub.toString()).append("\n");
         }
         code.append("}\n");
         return code.toString();
     }
-
+    
+    /**
+     * Resets the generator's attributes.
+     */
     private void reset(){
         this.variables = new ArrayList<>();
         this.subFunctions = new ArrayList<>();
@@ -85,22 +96,40 @@ public class LLVMGenerator {
         this.nonPersisVariableNumb = 0;
     }
 
+    /**
+     * Create a new subfunction with a specified label and add it to the list of subfunctions.
+     * @param label the label of the subfunction
+     * @return the new subfunction
+     */
     private SubFunctions newSubFunctions(String label){
         SubFunctions sub = new SubFunctions(label);
         subFunctions.add(sub);
         return sub;
     }
 
+    /**
+     * Create a new variable and add it to the list of variables.
+     * the variables are only identifiers to store values in the memory temporarily.
+     * @return the name of the new variable
+     */
     private String newVariable(){
         this.nonPersisVariableNumb++;
         return this.nonPersisVariableNumb.toString();
     }
 
+    /**
+     * Create a number to distiguish between different while loops.
+     * @return the identifier number of the while loop
+     */
     private String newWhile(){
         this.whileNumb++;
         return this.whileNumb.toString();
     }
 
+    /**
+     * Create a number to distiguish between different if statements.
+     * @return the identifier number of the if statement
+     */
     private String newIf(){
         this.ifNumb++;
         return this.ifNumb.toString();
@@ -108,12 +137,20 @@ public class LLVMGenerator {
 
 
 
+    /**
+     * Process the LLVM generation of the Program
+     * @param ast the root of the abstract syntax tree of the program
+     */
     private void ProcessAST(AbstractSyntaxTree ast) { //ast = (program,child)
         this.currentSubFunctions = newSubFunctions("entry");
         ProcessCodeAST(ast.getChildren().get(0));
         this.currentSubFunctions.addContent("ret i32 0");
     }
 
+    /**
+     * Process the LLVM generation of the Code
+     * @param ast the root of the abstract syntax tree of the code
+     */
     private void ProcessCodeAST(AbstractSyntaxTree ast) { //ast = (code,child)
         for(AbstractSyntaxTree child: ast.getChildren()){
             Symbol childSymbol = child.getLabel();
@@ -141,6 +178,10 @@ public class LLVMGenerator {
 
     }
 
+    /**
+     * Process the LLVM generation of the Print
+     * @param ast the root of the abstract syntax tree of the Print
+     */
     private void ProcessPrintNode(AbstractSyntaxTree ast) {
         Symbol childSymbol = ast.getChildren().get(0).getLabel();
         String varName = childSymbol.getValue().toString(); 
@@ -153,9 +194,13 @@ public class LLVMGenerator {
 
         String nonPersisVariable = newVariable();
         this.currentSubFunctions.addContent("%" + nonPersisVariable + " = load i32, i32* %" + varName);
-        this.currentSubFunctions.addContent("call void @printInt(i32 %" + nonPersisVariable + ")");
+        this.currentSubFunctions.addContent("call void @println(i32 %" + nonPersisVariable + ")");
     }
 
+    /**
+     * Process the LLVM generation of the Read
+     * @param ast the root of the abstract syntax tree of the Read
+     */
     private void ProcessReadNode(AbstractSyntaxTree ast) {
         String varName = ast.getChildren().get(0).getLabel().getValue().toString();
         if(!this.variables.contains(varName)){
@@ -167,19 +212,23 @@ public class LLVMGenerator {
         this.currentSubFunctions.addContent("store i32 %" + nonPersisVariable + ", i32* %" + varName);
     }
 
+    /**
+     * Process the LLVM generation of the If
+     * @param ast the root of the abstract syntax tree of the If
+     */
     private void ProcessIfNode(AbstractSyntaxTree ast) {
         String ifNumber = newIf();
-        String trueLabel = "if_true_" + ifNumber;
-        String falseLabel = "if_false_" + ifNumber;
+        String ifTrue = "if_true_" + ifNumber;
+        String ifFalse = "if_false_" + ifNumber;
         String endLabel = "if_end_" + ifNumber;
 
-        ProcessConditionAST(ast.getChildren().get(0), trueLabel, falseLabel);
+        ProcessConditionAST(ast.getChildren().get(0), ifTrue, ifFalse);
 
-        this.currentSubFunctions = newSubFunctions(trueLabel);
+        this.currentSubFunctions = newSubFunctions(ifTrue);
         ProcessCodeAST(ast.getChildren().get(1));
         this.currentSubFunctions.addContent("br label %" + endLabel);
 
-        this.currentSubFunctions = newSubFunctions(falseLabel);
+        this.currentSubFunctions = newSubFunctions(ifFalse);
         if(ast.getChildren().size() == 3){
             ProcessCodeAST(ast.getChildren().get(2));
         }
@@ -188,6 +237,10 @@ public class LLVMGenerator {
         this.currentSubFunctions = newSubFunctions(endLabel);
     }
 
+    /**
+     * Process the LLVM generation of the While
+     * @param ast the root of the abstract syntax tree of the While
+     */
     private void ProcessWhileNode(AbstractSyntaxTree ast) {
         String whileNumber = newWhile();
         String condition = "while_cond_" + whileNumber;
@@ -207,8 +260,10 @@ public class LLVMGenerator {
         this.currentSubFunctions = newSubFunctions(end);
     }
 
-    
-
+    /**
+     * Process the LLVM generation of the Assign
+     * @param ast the root of the abstract syntax tree of the Assign
+     */
     private void ProcessAssignAST(AbstractSyntaxTree ast) {
         String varName = ast.getChildren().get(0).getLabel().getValue().toString();
         if(!this.variables.contains(varName)){
@@ -219,7 +274,13 @@ public class LLVMGenerator {
 
     }
 
-    private void ProcessConditionAST(AbstractSyntaxTree ast, String loop, String end) {
+    /**
+     * Process the LLVM generation of the Condition
+     * @param ast the root of the abstract syntax tree of the Condition
+     * @param ifTrue the label to switch if the condition is true
+     * @param ifFalse the label to switch if the condition is false
+     */
+    private void ProcessConditionAST(AbstractSyntaxTree ast, String ifTrue, String ifFalse) {
         String left = ProcessExpressionAST(ast.getChildren().get(0));
         String right = ProcessExpressionAST(ast.getChildren().get(1));
 
@@ -242,19 +303,29 @@ public class LLVMGenerator {
 
         String nonPersisVariable = newVariable();
         this.currentSubFunctions.addContent("%" + nonPersisVariable + " = icmp " + op + " i32 %" + left + ", %" + right);
-        this.currentSubFunctions.addContent("br i1 %" + nonPersisVariable + ", label %" + loop + ", label %" + end);
+        this.currentSubFunctions.addContent("br i1 %" + nonPersisVariable + ", label %" + ifTrue + ", label %" + ifFalse);
     }
 
+    /**
+     * Process the LLVM generation of the Expression
+     * @param ast the root of the abstract syntax tree of the Expression
+     * @return the name of the variable that contains the result of the expression
+     */
     private String ProcessExpressionAST(AbstractSyntaxTree ast) {
-        return NodeProccessing(ast);
+        return NodeProcessing(ast);
     }
 
-    private String NodeProccessing(AbstractSyntaxTree ast) {
+    /**
+     * Process the LLVM generation of the Node of the Expression
+     * @param ast the root of the abstract syntax tree of the Node of the Expression
+     * @return the name of the variable that contains the result of the node of the expression
+     */
+    private String NodeProcessing(AbstractSyntaxTree ast) {
         if(ast.getChildren().isEmpty()){
             return ProcessLeaf(ast);
         }else{
-            String left = NodeProccessing(ast.getChildren().get(0));
-            String right = NodeProccessing(ast.getChildren().get(1));
+            String left = NodeProcessing(ast.getChildren().get(0));
+            String right = NodeProcessing(ast.getChildren().get(1));
             String op = "add";
             String result = newVariable();
 
@@ -280,6 +351,11 @@ public class LLVMGenerator {
         }
     }
 
+    /**
+     * Process the LLVM generation of the Leaf of the Expression
+     * @param ast the root of the abstract syntax tree of the Leaf of the Expression
+     * @return the name of the variable that contains the result of the leaf of the expression
+     */
     private String ProcessLeaf(AbstractSyntaxTree ast) {
         String variable = newVariable();
         switch(ast.getLabel().getType()){

@@ -49,7 +49,7 @@ define i32 @readInt() {
 define i32 @main() {
         %number = alloca i32
         %result = alloca i32
-         label %entry
+         br label %entry
 
         entry:
                 %1 = call i32 @readInt()
@@ -95,7 +95,7 @@ define i32 @main() {
 
         if_end_1:
                 %20 = load i32, i32* %result
-                call void @printInt(i32 %20)
+                call void @println(i32 %20)
                 ret i32 0
 
 }
