@@ -185,12 +185,11 @@ public class LLVMGenerator {
     private void ProcessPrintNode(AbstractSyntaxTree ast) {
         Symbol childSymbol = ast.getChildren().get(0).getLabel();
         String varName = childSymbol.getValue().toString(); 
-        // will I keep this?
-        // if(!this.variables.contains(varName)){
-        //     System.err.println("Error at line " + childSymbol.getLine() + " column" + childSymbol.getColumn() + " = \n"+
-        //     "\t variable\"" + varName + "\" used before assignment");
-        //     System.exit(1);
-        // }
+        if(!this.variables.contains(varName)){
+            System.err.println("Error at line " + childSymbol.getLine() + " column" + childSymbol.getColumn() + " = \n"+
+            "\t variable\"" + varName + "\" used before assignment");
+            System.exit(1);
+        }
 
         String nonPersisVariable = newVariable();
         this.currentSubFunctions.addContent("%" + nonPersisVariable + " = load i32, i32* %" + varName);
@@ -342,9 +341,9 @@ public class LLVMGenerator {
                 case DIVIDE:
                     op = "sdiv";
                     break;
-                // default:
-                //     System.err.println("Error: Unexpected symbol in expression node");
-                //     System.exit(1);
+                default:
+                    System.err.println("Error: Unexpected symbol in expression node");
+                    System.exit(1);
             }
             this.currentSubFunctions.addContent("%" + result + " = " + op + " i32 %" + left + ", %" + right);
             return result;
@@ -371,6 +370,9 @@ public class LLVMGenerator {
                 }
                 this.currentSubFunctions.addContent("%" + variable + " = load i32, i32* %" + varName);
                 break;
+            default:
+                System.err.println("Error: Unexpected symbol in expression leaf");
+                System.exit(1);
         }
         return variable;
     }

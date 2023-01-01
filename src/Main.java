@@ -69,11 +69,11 @@ public class Main{
 
         //launch the AST generation based on the parse tree
         AbstractSyntaxTree ast = ASTGeneration.ProgramNode(parseTree);
-        // if(latex!=null){
-        //     output = new FileWriter(latex);
-        //     output.write(ast.toLaTeX());
-        //     output.close();
-        // }
+        if(latex!=null){
+            output = new FileWriter(latex);
+            output.write(ast.toLaTeX());
+            output.close();
+        }
 
 
         //launch the LLVM code generation based on the AST
