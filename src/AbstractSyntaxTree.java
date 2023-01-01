@@ -19,14 +19,23 @@ public class AbstractSyntaxTree {
      */
     private List<AbstractSyntaxTree> children;
 
+    /**
+     * Returns the children of the tree.
+     */
     public List<AbstractSyntaxTree> getChildren() {
         return children;
     }
 
+    /**
+     * Sets the children of the tree.
+     */
     public Symbol getLabel() {
         return label;
     }
 
+    /**
+     * Sets the label of the tree.
+     */
     public void setLabel(Symbol label) {
         this.label = label;
     }
@@ -50,10 +59,18 @@ public class AbstractSyntaxTree {
         this.children = chldn;
     }
 
+    /**
+     * Adds a child to the tree.
+     * @param child The child to be added
+     */
     public void addChild(AbstractSyntaxTree child) {
         this.children.add(child);
     }
 
+    /**
+     * Removes a child from the tree.
+     * @param child The child to be removed
+     */
     public void removeChild(AbstractSyntaxTree child) {
         this.children.remove(child);
     }

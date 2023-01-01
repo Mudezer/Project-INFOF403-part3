@@ -1,5 +1,10 @@
 import java.util.ArrayList;
 
+/**
+ * This class generates the abstract syntax tree of a program from its parse tree.
+ * It is used to represent the syntax tree of a program.
+ * It has the same structure as the Parse tree, but it is not a subclass of it.
+ */
 public class ASTGeneration {
 
     /**
