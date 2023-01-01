@@ -48,7 +48,7 @@ define i32 @readInt() {
 
 define i32 @main() {
         %a = alloca i32
-         label %entry
+        br label %entry
 
         entry:
                 %1 = add i32 0, 2

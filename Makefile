@@ -8,13 +8,13 @@ testing_Lex:
 	java -jar dist/part3.jar test/Factorial.fs
 
 tested:
-	java -jar dist/part3.jar test/testIF.fs
+	java -jar dist/part3.jar test/trash.fs
 
 testing:
-#	java -jar dist/part3.jar -wt more/testIF.tex test/testIF.fs
-	java -jar dist/part3.jar -wt more/trash.tex test/trash.fs
-#	java -jar dist/part3.jar -wt more/tree.tex test/euclid.co
-#	java -jar dist/part3.jar -wt more/Factorial.tex test/Factorial.fs
+#	java -jar dist/part3.jar test/testIF.fs
+#	java -jar dist/part3.jar test/trash.fs
+#	java -jar dist/part3.jar test/euclid.co
+	java -jar dist/part3.jar test/Factorial.fs
 #	pdflatex more/tree.tex
 
 

@@ -1,6 +1,5 @@
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 
 
@@ -26,40 +25,17 @@ public class Main{
     public static void main(String[] args) throws FileNotFoundException, IOException, SecurityException{
         // Display the usage when the number of arguments is wrong (should be at least one)
         if(args.length < 1 ){
-            System.out.println("Usage:  java -jar part2.jar -wt file.tex file.fs\n"
-                    + "or\tjava "+Main.class.getSimpleName()+" -wt file.tex  file.fs");
+            System.out.println("Usage:  java -jar part3.jar file.fs\n"
+                    + "or\tjava "+Main.class.getSimpleName()+" file.fs");
             System.exit(0);
         }
 
         FileReader source;
-        FileWriter output;
-        String latex = null;
         String fortress = null;
 
-
-        /*
-            checks if there are sufficient arguments and which one are missing
-         */
-        for(int i = 0; i< args.length;i++){
-            if(args[i].equals("-wt")){
-                if(i+1 < args.length && i+2 < args.length){
-                    latex= args[i+1];
-                    fortress = args[i +2];
-                }else if(i + 1 == args.length){
-                    System.err.println("source file expected, please enter one in fs or co format");
-                    System.exit(0);
-                }else if(i+1 > args.length){
-                    System.err.println("no enough argument, source and output files expected");
-                    System.exit(0);
-                }
-
-
-            }else
-                fortress = args[i];
+        if(args.length == 1){
+            fortress = args[0];
         }
-
-
-
         // Open the file given in argument
         source = new FileReader(fortress);
         final Parser parser = new Parser(source);
@@ -69,12 +45,6 @@ public class Main{
 
         //launch the AST generation based on the parse tree
         AbstractSyntaxTree ast = ASTGeneration.ProgramNode(parseTree);
-        if(latex!=null){
-            output = new FileWriter(latex);
-            output.write(ast.toLaTeX());
-            output.close();
-        }
-
 
         //launch the LLVM code generation based on the AST
         LLVMGenerator llvm = new LLVMGenerator();

@@ -360,7 +360,7 @@ public class LLVMGenerator {
         switch(ast.getLabel().getType()){
             case NUMBER:
                 this.currentSubFunctions.addContent("%" + variable + " = add i32 0, " + ast.getLabel().getValue().toString());
-                return variable;
+                break;
             case VARNAME:
                 String varName = ast.getLabel().getValue().toString();
                 if(!this.variables.contains(varName)){
